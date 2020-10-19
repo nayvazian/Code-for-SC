@@ -135,90 +135,91 @@ pheatmap(sampleDistMatrix,
 #### Input the data(expression matrix)
 ```
 a <- read.csv('/Users/chensitong/Desktop/sc/dpi25/dpi25.csv',header = T, row.names = 1)
-cbmc.rna <- as.sparse(a) 
-pbmc <- CreateSeuratObject(counts = cbmc.rna, project = 'dpi25', min.cells = 3, min.features = 200)
-pbmc[["percent.mt"]] <- PercentageFeatureSet(pbmc, pattern = "^MT-")
+cbmc.rna <- as.sparse(a)
+gbm <- CreateSeuratObject(counts = cbmc.rna, project = 'dpi25', min.cells = 3, min.features = 200)
+gbm[["percent.mt"]] <- PercentageFeatureSet(gbm, pattern = "^MT-")
 ```
 
-#### expression level data without mt number 
+#### expression level data without mt number
 ```
-VlnPlot(pbmc, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+VlnPlot(gbm, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
 ```
 #### Normalizing the data
 ```
-pbmc <- NormalizeData(pbmc)
+gbm <- NormalizeData(gbm)
 ```
 #### Identification of highly variable features (feature selection)
 ```
-pbmc <- FindVariableFeatures(pbmc, selection.method = "vst", nfeatures = 2000)
+gbm <- FindVariableFeatures(gbm, selection.method = "vst", nfeatures = 2000)
 ```
 #### Identify the 10 most highly variable genes
 ```
-top10 <- head(VariableFeatures(pbmc), 10)
+top10 <- head(VariableFeatures(gbm), 10)
 ```
 
 #### plot variable features with and without labels
 ```
-plot1 <- VariableFeaturePlot(pbmc)
+plot1 <- VariableFeaturePlot(gbm)
 plot2 <- LabelPoints(plot = plot1, points = top10, repel = TRUE)
 CombinePlots(plots = list(plot1, plot2))
 
-all.genes <- rownames(pbmc)
-pbmc <- ScaleData(pbmc, features = all.genes)
+all.genes <- rownames(gbm)
+gbm <- ScaleData(gbm, features = all.genes)
 ```
 
 #### PCA
 ```
-pbmc <- RunPCA(pbmc, features = VariableFeatures(object = pbmc))
-print(pbmc[["pca"]], dims = 1:5, nfeatures = 5)
-VizDimLoadings(pbmc, dims = 1:2, reduction = "pca")
-DimPlot(pbmc, reduction = "pca")
-DimHeatmap(pbmc, dims = 1, cells = 500, balanced = TRUE)
+gbm <- RunPCA(gbm, features = VariableFeatures(object = gbm))
+print(gbm[["pca"]], dims = 1:5, nfeatures = 5)
+VizDimLoadings(gbm, dims = 1:2, reduction = "pca")
+DimPlot(gbm, reduction = "pca")
+DimHeatmap(gbm, dims = 1, cells = 500, balanced = TRUE)
 ```
 
 #### determine the significant PC
 ```
-pbmc <- JackStraw(pbmc, num.replicate = 100)
-pbmc <- ScoreJackStraw(pbmc, dims = 1:20)
-JackStrawPlot(pbmc, dims = 1:15)
-ElbowPlot(pbmc)
+gbm <- JackStraw(gbm, num.replicate = 100)
+gbm <- ScoreJackStraw(gbm, dims = 1:20)
+JackStrawPlot(gbm, dims = 1:15)
+ElbowPlot(gbm)
 ```
-#### clustering 
+#### clustering
 ```
-pbmc <- FindNeighbors(pbmc, dims = 1:10)
-pbmc <- FindClusters(pbmc, resolution = 0.25)## resolution determine the number of cluster
+gbm <- FindNeighbors(gbm, dims = 1:10)
+gbm <- FindClusters(gbm, resolution = 0.25)## resolution determine the number of cluster
 ```
 #### UMAP
 ```
-pbmc <- RunUMAP(pbmc, dims = 1:10)
-DimPlot(pbmc, reduction = "umap")
+gbm <- RunUMAP(gbm, dims = 1:10)
+DimPlot(gbm, reduction = "umap")
 ```
 
 ####  find markers for every cluster compared to all remaining cells, report only the positive ones
 ```
-pbmc.markers <- FindAllMarkers(pbmc, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
-pbmc.markers %>% group_by(cluster) %>% top_n(n = 2, wt = avg_logFC)
-cluster1.markers <- FindMarkers(pbmc, ident.1 = 0, logfc.threshold = 0.25, test.use = "roc", only.pos = TRUE)
-VlnPlot(pbmc, features = c('Cd3','Cd19'))##marker 
-FeaturePlot(pbmc, features = c('Pdgfra','Olig1','Olig2')
+gbm.markers <- FindAllMarkers(gbm, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+gbm.markers %>% group_by(cluster) %>% top_n(n = 2, wt = avg_logFC)
+cluster1.markers <- FindMarkers(gbm, ident.1 = 0, logfc.threshold = 0.25, test.use = "roc", only.pos = TRUE)
+VlnPlot(gbm, features = c('Cd3','Cd19'))##marker
+FeaturePlot(gbm, features = c('Pdgfra','Olig1','Olig2')
 ```
 
 ![example output](Biomarker.jpg)
 
 ```
-top10 <- pbmc.markers %>% group_by(cluster) %>% top_n(n = 10, wt = avg_logFC)
+top10 <- gbm.markers %>% group_by(cluster) %>% top_n(n = 10, wt = avg_logFC)
 
 
 new.cluster.ids <- c('Immune','Pri-OPC-like','Cycling Pri-OPC-like','Endothelial','COP-like','Hypoxic','mOL','Stressd',)
-names(new.cluster.ids) <- levels(pbmc)
-pbmc <- RenameIdents(pbmc, new.cluster.ids)
-DimPlot(pbmc, reduction = "umap", label = TRUE, pt.size = 0.5) 
+names(new.cluster.ids) <- levels(gbm)
+gbm <- RenameIdents(gbm, new.cluster.ids)
+DimPlot(gbm, reduction = "umap", label = TRUE, pt.size = 0.5)
 ```
 ![example output](Umap.jpg)
 
 ```
-DoHeatmap(pbmc, features = top10$gene) 
+DoHeatmap(gbm, features = top10$gene)
 ```
+
 ![example output](Cluster.png)
 ### Convert Ensembl ID to gene name. 
 input the file.
