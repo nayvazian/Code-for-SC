@@ -11,7 +11,7 @@ I used the DESeq2 to do the DEG analysis.
 
 dir <- "Documents/lab/DEseq2/quants"
 list.files(dir)
-samples <- paste0("Mouse2_", c(seq(1,4)),"_quant")
+samples <- paste0("S", c(seq(1,10)),"_quant")
 files <- file.path(dir, samples, "quant.sf")
 names(files) <-paste0(c('Mouse 2-SVZL-P3','Mouse 2-SVZR-P2','R172H SVZ L4P2','R172H SVZ L5P2','R172H SVZ L6P2','181004#1 SVZ P2','181004#4 SVZ P2','181004#5 SVZ P2','181004#2 SVZ P2','181004#3 SVZ P2')) # sample name
 all(file.exists(files))
